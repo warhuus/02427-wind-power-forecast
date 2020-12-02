@@ -1,7 +1,7 @@
 #diagnostic plots
-my.tsdiag <- function(dat,   nlag = 200, ...){
+my.tsdiag <- function(dat, residuals,  nlag = 200, ...){
   if(class(dat) == "Arima")
-    dat <- dat$residuals
+    dat <- dat[[residuals]]
   oldpar <- par(mfrow=c(4,1), mgp=c(2,0.7,0), mar=c(3,3,1.5,1))
   on.exit(par(oldpar))
   plot(dat)
