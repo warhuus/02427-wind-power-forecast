@@ -1,7 +1,4 @@
-# Set working directory
-src <- paste0(strsplit(getwd(), "DTU")[[1]][1],
-              "DTU/semester_1/02427_advanced_tsa/projects/02427-wind-power-forecast")
-setwd(src)
+setwd("C:\\Users\\CHSWA\\OneDrive - Ørsted\\DTU\\semester_1\\02427_advanced_tsa\\projects\\02427-wind-power-forecast")
 
 # Get data and set `t` as POSIX
 data <- read.csv("data/data/cex4WindDataInterpolated.csv")
