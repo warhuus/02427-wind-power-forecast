@@ -73,3 +73,14 @@ fit <- loess('p ~ Ws1 + Wd1', data)
 pred <- predict(data)
 
 plot(data$Ws1, pred)
+
+par(mfrow=c(2,1))
+acf(data[[3]], na.action = na.pass)
+pacf(data[[3]], na.action = na.pass)
+
+data_diff = diff(data[[3]], lag = 1)
+#data_diff = diff(data_diff, lag = 24)
+acf(data_diff, na.action = na.pass, lag.max = 100)
+pacf(data_diff, na.action = na.pass, lag.max = 100)
+
+
