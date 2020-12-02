@@ -2,6 +2,7 @@ setwd("C:\\Users\\CHSWA\\OneDrive - Ørsted\\DTU\\semester_1\\02427_advanced_tsa\
 
 # Get data and set `t` as POSIX
 data <- read.csv("data/data/cex4WindDataInterpolated.csv")
+config <- read.csv("config.txt")
 data$t <- as.POSIXct(data$t)
 
 # Remove nans (for now)
@@ -51,9 +52,26 @@ axes3d()
 title3d(xlab = "Direction [deg]", ylab="Forecasted wind speed [m/s]", zlab="Power [kW]")
 
 # Kernel estimate
-fit <- loess('p ~ Ws1 + Wd1', shortData, span = 0.8)
+fit <- loess('p ~ Ws1 + Wd1', data, span = 0.8)
 nplot <- 20
 x1Seq <- seq(min(shortData$Wd1), max(shortData$Wd1), len=nplot)
 y1Seq <- seq(min(shortData$Ws1), max(shortData$Ws1), len=nplot)
 yprd <- outer(x1Seq, y1Seq, function(Wd1, Ws1){predict(fit, data.frame(Wd1 = Wd1, Ws1 = Ws1))})
 surface3d(x1Seq, y1Seq, yprd, color="blue", alpha=0.5)
+
+# Plot end of training data
+source('functions\\plotting\\basic_data_plots.R')
+plot_train_valid_data(data, config, colors=c('black', 'red'), lty=c(1, 2), lwd=2)
+
+fit <- arima(data$p[1:config$N_train], order=c(1, 1, 0), xreg=data[1:config$N_train, c("Ws1", "Wd1")])
+preds <- predict(fit, newxreg=data[config$N_train:dim(data)[1], c("Ws1", "Wd1")])
+plot_fit(preds$pred, config)
+
+# ARMAX
+
+
+# SETAR
+
+
+# MMAR
+
