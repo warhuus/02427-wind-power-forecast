@@ -1,0 +1,6 @@
+par(mfrow = c(1, 1))
+par(oma = c(4, 4, 0, 0))
+par(mar = c(0.3, 0.3, 0.3, 0.3))
+plot_seq <- c(config$N_train - config$N_train_vis, config$N_train, config$N_train + config$N_valid_vis)
+plot(data$toy[plot_seq[1]:plot_seq[2]], data$p[plot_seq[1]:plot_seq[2]], type='l', col='black', lwd=2, xlim=c(data$toy[plot_seq[1]], data$toy[plot_seq[3]]))
+lines(data$toy[(plot_seq[2]+1):plot_seq[3]], data$p[(plot_seq[2]+1):plot_seq[3]], type='l', col='blue', lwd=2)
