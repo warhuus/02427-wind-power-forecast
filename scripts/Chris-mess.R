@@ -1,19 +1,19 @@
 setwd("C:\\Users\\CHSWA\\OneDrive - Ørsted\\DTU\\semester_1\\02427_advanced_tsa\\projects\\02427-wind-power-forecast")
 
 # Get data and set `t` as POSIX
-data <- read.csv("data/data/cex4WindDataInterpolated.csv")
+dat <- read.csv("data/data/cex4WindDataInterpolated.csv")
 config <- read.csv("config.txt")
-data$t <- as.POSIXct(data$t)
+dat$t <- as.POSIXct(dat$t)
 
 # Remove nans (for now)
-data <- na.omit(data)
+dat <- na.omit(dat)
 
 # Get shortened data for plotting
-shortenData <- function(n, data) {
-  index <- sample.int(dim(data)[1], n)
-  return(data[index,])
+shortenData <- function(n, dat) {
+  index <- sample.int(dim(dat)[1], n)
+  return(dat[index,])
 }
-shortData <- shortenData(1000, data)
+shortData <- shortenData(1000, dat)
 
 # Separate data
 NEData <- shortData[which(shortData$Wd1 <= 90),]
@@ -52,7 +52,7 @@ axes3d()
 title3d(xlab = "Direction [deg]", ylab="Forecasted wind speed [m/s]", zlab="Power [kW]")
 
 # Kernel estimate
-fit <- loess('p ~ Ws1 + Wd1', data, span = 0.8)
+fit <- loess('p ~ Ws1 + Wd1', dat, span = 0.8)
 nplot <- 20
 x1Seq <- seq(min(shortData$Wd1), max(shortData$Wd1), len=nplot)
 y1Seq <- seq(min(shortData$Ws1), max(shortData$Ws1), len=nplot)
@@ -61,16 +61,26 @@ surface3d(x1Seq, y1Seq, yprd, color="blue", alpha=0.5)
 
 # Plot end of training data
 source('functions\\plotting\\basic_data_plots.R')
-plot_train_valid_data(data, config, colors=c('black', 'red'), lty=c(1, 2), lwd=2)
+plot_train_valid_data(dat, config, colors=c('black', 'red'), lty=c(1, 2), lwd=2)
 
-fit <- arima(data$p[1:config$N_train], order=c(1, 1, 0), xreg=data[1:config$N_train, c("Ws1", "Wd1")])
-preds <- predict(fit, newxreg=data[config$N_train:dim(data)[1], c("Ws1", "Wd1")])
+fit <- arima(dat$p[1:config$N_train], order=c(1, 1, 0), xreg=dat[1:config$N_train, c("Ws1", "Wd1")])
+preds <- predict(fit, newxreg=dat[config$N_train:dim(dat)[1], c("Ws1", "Wd1")])
 plot_fit(preds$pred, config)
 
-# ARMAX
 
+# SETAR model
+training_data = dat[1:config$N_train,]
+# Plot end of training data
+source('models\\setar.R')
+optim.model <- optim(rep(0, 18), setarRSS)
+setar_preds <- setar(optim.model$par)
 
-# SETAR
+plot_train_valid_data(dat, config, colors=c('black', 'black'), lty=c(1, 2), lwd=2)
+plot_fit(setar_preds, config, lty=c(1, 1), col="red")
+legend("topright", legend=c("training data",
+                            "testing_data",
+                            "1-step in/out-of-sample predictions"),
+       lty=c(1, 2, 1), col=c("black", "black", "red"))
 
 
 # MMAR
