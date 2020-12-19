@@ -19,7 +19,7 @@
 
 ## Start
 rm(list=ls())
-setwd("~/courses/ats02427/computerExercise4Wind/r/")
+setwd("/Volumes/GoogleDrive/Mit drev/Matematisk modellering/9. semester/Adv. Time Series/exercises/02427-wind-power-forecast")
 
 ##----------------------------------------------------------------
 ## Control weather to plot
@@ -140,7 +140,7 @@ replaceNAs <- function(cln,k,NWP)
 
 ##----------------------------------------------------------------
 ## Read the wind power data
-P = read.table("../data/wind_pow.dep", header=FALSE,col.names=c("t","toy","p"), skip = 12)
+P = read.table("data/data/wind_pow.dep", header=FALSE,col.names=c("t","toy","p"), skip = 12)
 
 P$t <- convertToPOSIXct(P$t)
 
@@ -193,7 +193,7 @@ plotAroundGaps(P,"p",80)
 
 ##----------------------------------------------------------------
 # Klim NWP
-NWP = read.table("../data/wind_nwp.dep",skip = 16, header=FALSE, col.names=c("t","toy","tPred","Ws","Wd","T"))
+NWP = read.table("data/data/wind_nwp.dep",skip = 16, header=FALSE, col.names=c("t","toy","tPred","Ws","Wd","T"))
 summary(NWP)
 nrow(NWP) #37941
 
@@ -367,23 +367,85 @@ D$T <- interpol(D$T, 26)
 ## Keep the data
 D3 <- D
 
+Ds <- vector(mode="list",length=12 )
+
+D_names <- c('D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D12')
+
+for (j in 1:12) {
+  xWs <- replaceNAs('Ws',j,NWP)
+  xWd <- replaceNAs('Wd',j,NWP)
+  xT <- replaceNAs('T',j,NWP)
+  D <- merge(xWs,xWd, all=TRUE)
+  D <- merge(D,xT, all=TRUE)
+  
+  ## Check the age
+  range(D$t - D$tPredT)
+  
+  ## Keep the non interpolated data
+  DNoInterPolate3 <- D
+  
+  ## See if remaining gaps can be filled by interpolation for Wind Speed
+  plot(D$t, is.na(D$Ws), type="l")
+  plotAroundGaps(D,"Ws",150)
+  ## Fair to do linear interpolate for gaps below or equal to 26 missing samples
+  D$Ws <- interpol(D$Ws, 26)
+  
+  ## See if remaining gaps can be filled by interpolation for Wind direction
+  plot(D$t, is.na(D$Wd), type="l")
+  iGaps <- plotAroundGaps(D,"Wd",150)
+  ## Hmm, problems since it is limited between 0 and 360, so
+  xOr <- D$Wd
+  dWd <- diff(D$Wd[!is.na(D$Wd)])
+  i <- abs(dWd)>200
+  dWd[i] <- dWd[i] - sign(dWd[i]) * 360
+  D$Wd[!is.na(D$Wd)] <- c(D$Wd[1],D$Wd[1]+cumsum(dWd))
+  ## Do the interpolation
+  D$Wd <- interpol(D$Wd,26)
+  ## Crop it back between 0 and 360
+  D$Wd <- round(D$Wd%%360, 1)
+  D$Wd[D$Wd==360] <- 0
+  ## Check how the interpolation has worked out
+  plotAroundGaps(D,"Wd",36,FALSE,iGaps)
+  ## Check if anything has gone wrong
+  unique(D$Wd-xOr)
+  
+  ## See if remaining gaps can be filled by interpolation for Temperature
+  plotAroundGaps(D,"T",150)
+  ## Fair to do linear interpolate for gaps below or equal to 26 missing samples
+  D$T <- interpol(D$T, 26)
+  
+  print('save data')
+  
+  names(D) <- c('t', 'toy', 'tPredWs', paste('Ws', as.character(j), sep = ''), 'tPredWd',
+                paste('Wd', as.character(j), sep = ''), 'tPredWdT', paste('T', as.character(j), sep = ''))
+  ## Keep the data
+  Ds[[j]] <- D
+}
 
 ##----------------------------------------------------------------
 ## Compile the final dataset
 ## Merge the interpolated data
-names(D1)
-X <- merge(P,D1,by="t")
+X <- merge(P,Ds[[1]],by="t")
 X <- X[,-4]
 names(X)[2] <- "toy"
-X <- merge(X,D2,by="t")
-X <- merge(X,D3,by="t")
+
+for (i in 2:12) {
+  X <- merge(X,Ds[[i]],by="t")
+}
+
 names(X)
-X <- X[,c("t","toy.x","p","Ws.x","Wd.x","T.x","Ws.y","Wd.y","T.y","Ws","Wd","T")]
-names(X) <- c("t","toy","p","Ws1","Wd1","T1","Ws2","Wd2","T2","Ws3","Wd3","T3")
+X <- X[,c("t","toy.x","p","Ws1","Wd1","T1","Ws2","Wd2","T2","Ws3","Wd3","T3", 
+          "Ws4","Wd4","T4", "Ws5","Wd5","T5", "Ws6","Wd6","T6", "Ws7","Wd7","T7",
+          "Ws8","Wd8","T8", "Ws9","Wd9","T9", "Ws10","Wd10","T10","Ws11","Wd11","T11",
+          "Ws12","Wd12","T12")]
+names(X) <- c("t","toy","p","Ws1","Wd1","T1","Ws2","Wd2","T2","Ws3","Wd3","T3", 
+              "Ws4","Wd4","T4", "Ws5","Wd5","T5", "Ws6","Wd6","T6", "Ws7","Wd7","T7",
+              "Ws8","Wd8","T8", "Ws9","Wd9","T9", "Ws10","Wd10","T10","Ws11","Wd11","T11",
+              "Ws12","Wd12","T12")
 summary(X)
 
 ## Write the data file
-write.table(X, "~/courses/ats02427/computerExercise4Wind/cex4WindDataInterpolated.csv", sep=",", row.names=FALSE)
+write.table(X, "data/data/cex4WindDataInterpolated12Hours.csv", sep=",", row.names=FALSE)
 
 ## See the gaps left
 plot(X$t, apply(X,1,function(x){ any(is.na(x)) }), type="l")
