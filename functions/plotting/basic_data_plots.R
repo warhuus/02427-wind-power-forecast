@@ -6,6 +6,7 @@ plot_train_valid_data <- function(data,
                                   config,
                                   x="toy",
                                   y="p",
+                                  own_plot=TRUE,
                                   mfrow=c(1, 1),
                                   oma=c(3.5, 3.5, 0, 0),
                                   par=c(0.3, 0.3, 0.3, 0.3),
@@ -15,10 +16,13 @@ plot_train_valid_data <- function(data,
                                   lty=c(1, 1),
                                   ...)
 {
-  # Set up plots
-  par(mfrow = mfrow)
-  par(oma = oma)
-  par(mar = par)
+  if (own_plot == TRUE)
+  {
+    # Set up plots
+    par(mfrow = mfrow)
+    par(oma = oma)
+    par(mar = par) 
+  }
   
   # Get plotting limits from `config`
   plot_seq <- c(config$N_train - config$N_train_vis,
@@ -57,6 +61,7 @@ plot_train_valid_data <- function(data,
 }
 
 plot_fit <- function(preds,
+                     data,
                      # conf_high,
                      # conf_low,
                      config,
@@ -70,15 +75,15 @@ plot_fit <- function(preds,
                 config$N_train,
                 config$N_train + config$N_valid_vis)
   
-  # Plot validation
-  lines(data[[x]][plot_seq[1]:plot_seq[2]],
+  # Plot in-sample
+  lines(data[plot_seq[1]:plot_seq[2], x],
         preds[plot_seq[1]:plot_seq[2]],
         lty=lty[1],
-        ...)
-  # Plot validation
-  lines(data[[x]][plot_seq[2]:plot_seq[3]],
+        ...elt())
+  # Plot out-of-sample
+  lines(data[plot_seq[2]:plot_seq[3], x],
         preds[plot_seq[2]:plot_seq[3]],
-        lty=lty[1],
+        lty=lty[2],
         ...)
 
   # # Plot conf 1
