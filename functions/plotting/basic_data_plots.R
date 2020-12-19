@@ -57,28 +57,39 @@ plot_train_valid_data <- function(data,
 }
 
 plot_fit <- function(preds,
-                     conf_high,
-                     conf_low,
+                     # conf_high,
+                     # conf_low,
                      config,
                      x="toy",
                      lty=c(2, 3),
                      ...)
 {
+  
+  # Get plotting limits from `config`
+  plot_seq <- c(config$N_train - config$N_train_vis,
+                config$N_train,
+                config$N_train + config$N_valid_vis)
+  
   # Plot validation
-  lines(data[[x]][(plot_seq[2]+1):plot_seq[3]],
-        preds[1:config$N_valid_vis],
+  lines(data[[x]][plot_seq[1]:plot_seq[2]],
+        preds[plot_seq[1]:plot_seq[2]],
         lty=lty[1],
         ...)
-  
-  # Plot conf 1
-  lines(data[[x]][(plot_seq[2]+1):plot_seq[3]],
-        conf_high[1:config$N_valid_vis],
-        lty=lty[2],
+  # Plot validation
+  lines(data[[x]][plot_seq[2]:plot_seq[3]],
+        preds[plot_seq[2]:plot_seq[3]],
+        lty=lty[1],
         ...)
-  
-  # Plot conf 2
-  lines(data[[x]][(plot_seq[2]+1):plot_seq[3]],
-        conf_low[1:config$N_valid_vis],
-        lty=lty[2],
-        ...)
+
+  # # Plot conf 1
+  # lines(data[[x]][(plot_seq[2]+1):plot_seq[3]],
+  #       conf_high[1:config$N_valid_vis],
+  #       lty=lty[2],
+  #       ...)
+  # 
+  # # Plot conf 2
+  # lines(data[[x]][(plot_seq[2]+1):plot_seq[3]],
+  #       conf_low[1:config$N_valid_vis],
+  #       lty=lty[2],
+  #       ...)
 }
