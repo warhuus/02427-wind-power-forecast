@@ -79,7 +79,7 @@ plot_fit <- function(preds,
   lines(data[plot_seq[1]:plot_seq[2], x],
         preds[plot_seq[1]:plot_seq[2]],
         lty=lty[1],
-        ...elt())
+        ...)
   # Plot out-of-sample
   lines(data[plot_seq[2]:plot_seq[3], x],
         preds[plot_seq[2]:plot_seq[3]],

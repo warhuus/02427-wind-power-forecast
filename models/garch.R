@@ -3,7 +3,7 @@ library(rugarch)
 library(xts)
 
 rm(list=ls())
-setwd("/Volumes/GoogleDrive/Mit drev/Matematisk modellering/9. semester/Adv. Time Series/exercises/02427-wind-power-forecast")
+setwd("..")
 source('functions/plotting/diagnostic_plots.R')
 
 config <- read.csv('config.txt')

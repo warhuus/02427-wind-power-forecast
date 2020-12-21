@@ -9,9 +9,7 @@ mod_ws <- lm(p~Ws1, half_tr_data)
 mod_full <- lm(p~Ws1 + Wd1, half_tr_data)
 mod_list <- list("mod"=mod, "mod_wd"=mod_wd, "mod_ws"=mod_ws, "mod_full"=mod_full)
 
-all_results <- list()
-
-l <- vector("list", 3*4*4)
+l <- vector("list", 2*4 + 3)
 
 i <- 1
 for (k in 2:3) {
@@ -37,8 +35,8 @@ for (i in 1:8) {
 
 ############## SECOND TRY ###########################
 mod_list <- list("mod_ws"=mod_ws)
-i <- 12
-for (k in 4:5) {
+i <- 9
+for (k in 3) {
   for (p in 1:3) {
     for (mod_name in names(mod_list)) {
       
@@ -64,11 +62,11 @@ best <- l[[11]]
 source("functions//markovChainSimulation.R")
 
 # MMAR(3, 3)
-mmar33 <- function(best, valid_dat)
+mmar33 <- function(Fit, valid_dat)
 {
   # Make MC chain
   N <- dim(valid_dat)[1]
-  P <- best@transMat
+  P <- Fit@transMat
   MC <- run.mc.sim(P=P, N-3)
   
   # Get actual values
@@ -84,16 +82,25 @@ mmar33 <- function(best, valid_dat)
                y[-N][-N+1][-1],     # lag 2
                y[-N][-N+1][-N+2]),  # lag 3
              ncol=5)
-  theta <- best@Coef
+  theta <- Fit@Coef
   y_hat_all <- X %*% t(coefs)
+  eps <- y_hat_all - matrix(rep(y))
 
   # Get predictions for specfic regime
-  y_hat <- rep(NA, N-3)
-  sds <- rep(NA, N-3)
-  for (i in 1:(N-3))
-  {
-    y_hat[i] <- y_hat_all[i, MC[i]]
-    sds[i] <- best@std[MC[i]]
-  }
+  # y_hat <- rep(NA, N-3)
+  # sds <- rep(NA, N-3)
+  # for (i in 1:(N-3))
+  # {
+  #   y_hat[i] <- y_hat_all[i, MC[i]]
+  #   sds[i] <- Fit@std[MC[i]]
+  # }
   return(list("preds"=y_hat, "std"=sds))
 }
+
+preds <- mmar33(best, dat)
+std <- c(NA, NA, NA, preds$std)
+preds <- c(NA, NA, NA, preds$preds)
+plot_train_valid_data(dat, config, colors=c('black', 'red'), lty=c(1, 2), lwd=2)
+plot_fit(pred, dat, config, col='blue', lty=c(3, 3), lwd=2)
+legend("topright", legend=c("training data", "validation data", "MSAR fit"),
+       col=c('black', 'red', 'blue'), lty=c(1, 2, 3), lwd=rep(2, 3))
