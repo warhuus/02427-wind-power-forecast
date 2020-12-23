@@ -34,12 +34,13 @@ fit2 <- (arima(data['p'], order = c(2,0,2),
 acf(fit2$residuals, na.action = na.pass)
 pacf(fit2$residuals, na.action = na.pass)
 
-fit4 <- (arima(train['p'], order = c(2,0,2),
+fit6 <- (arima(train['p'], order = c(2,1,2),
                seasonal = list(order= c(1,0,0), period = 24),
                xreg = train[c('Ws1')]))
 par(mfrow=c(2,1))
 acf(fit4$residuals^2, na.action = na.pass)
 pacf(fit4$residuals^2, na.action = na.pass)
 
-my.tsdiag(fit4, 'residuals', na.action = na.pass)
+my.tsdiag(fit5, 'residuals', na.action = na.pass)
+
 cpgram(fit3$residuals)

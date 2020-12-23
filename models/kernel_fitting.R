@@ -7,8 +7,8 @@ config <- read.csv('config.txt')
 
 data <- read.csv('data/data/cex4WindDataInterpolated.csv')
 n_train <- config$N_train
-train <- data[(n_train-2000):n_train, c('t','p', 'Ws1', 'Ws2', 'Ws3')]
-test <- data[(n_train+1):length(data$p), c('t','p', 'Ws1', 'Ws2', 'Ws3')]
+train <- data[(n_train-2000):n_train, c('t', 'toy','p', 'Ws1', 'Ws2', 'Ws3')]
+test <- data[(n_train+1):length(data$p), c('t', 'toy','p', 'Ws1', 'Ws2', 'Ws3')]
 
 y <- train$p[-c(1)]
 y1 <- train$p[-length(train$p)]
@@ -84,12 +84,66 @@ pred3step <- localLSval(y, y1train, y1test, ws1, ws3, opt_width_3step)
 plot(pred3step[['pred']][100:200], type = 'l')
 lines(train$p[-c(1, 2,3)][100:200], col = 'red')
 
-ytest <- test$p[-1]
-y1test <- test$p[-length(test$p)]
-wstest <- test$Ws1[-1]
 
+#predictions
 ytrain <- train$p[-1]
 y1train <- train$p[-length(train$p)]
 wstrain <- train$Ws1[-1]
 
-test_1step <- localLSval(ytrain, y1train, y1test, wstrain, wstest, opt_width_1step)
+#1 step
+ytest <- test$p[-1]
+y1test <- test$p[-length(test$p)]
+wstest <- test$Ws1[-1]
+
+#test_1step <- localLSval(ytrain, y1train, y1test, wstrain, wstest, opt_width_1step)
+test_1step <- localLSval(ytrain, y1train, y1test, wstrain, wstest, 0.9, train = FALSE)
+test_temp <- localLSval(ytrain, y1train, y1train, wstrain, wstrain, 0.9)
+residuals <- y1train-test_temp
+
+residuals1 <- ytest - test_1step[['pred']]
+
+plot(test$toy[-1][1:200], test_1step[['pred']][1:200], type = 'l', 
+     ylim = c(-2, 15), ylab = 'Wind power', xlab = 'Day of 2003')
+lines(test$toy[-1][1:200], test_1step[['upper']][1:200], lty = 2, col = 'blue')
+lines(test$toy[-1][1:200], test_1step[['lower']][1:200], lty = 2, col = 'blue')
+lines(test$toy[-1][1:200], ytest[1:200], col = 'red')
+legend('topright', 
+       legend= c('Predicted value', '95% confidence intervals', 'True value'),
+       lty = c(1,2,1), col = c('black', 'blue', 'red'))
+
+#2 step
+ytest <- test$p[-c(1, 2)]
+y1test <- test_1step[['pred']][-length(test_1step[['pred']])]
+wstest <- test$Ws2[-c(1, 2)]
+
+#test_2step <- localLSval(ytrain, y1train, y1test, wstrain, wstest, opt_width_2step)
+test_2step <- localLSval(ytrain, y1train, y1test, wstrain, wstest, 0.34, train = FALSE)
+residuals2 <- ytest - test_2step[['pred']]
+
+plot(test$toy[-c(1,2)][1:200], test_2step[['pred']][1:200], type = 'l', 
+     ylim = c(-2, 15), ylab = 'Wind power', xlab = 'Day of 2003')
+lines(test$toy[-c(1,2)][1:200], test_2step[['upper']][1:200], lty = 2, col = 'blue')
+lines(test$toy[-c(1,2)][1:200], test_2step[['lower']][1:200], lty = 2, col = 'blue')
+lines(test$toy[-c(1,2)][1:200], ytest[1:200], col = 'red')
+legend('topright', 
+       legend= c('Predicted value', '95% confidence intervals', 'True value'),
+       lty = c(1,2,1), col = c('black', 'blue', 'red'))
+
+#3 step
+ytest <- test$p[-c(1, 2, 3)]
+y1test <- test_2step[['pred']][-length(test_2step[['pred']])]
+wstest <- test$Ws3[-c(1, 2, 3)]
+
+#test_3step <- localLSval(ytrain, y1train, y1test, wstrain, wstest, opt_width_3step)
+test_3step <- localLSval(ytrain, y1train, y1test, wstrain, wstest, 0.21, train =FALSE)
+residuals3 <- ytest - test_3step[['pred']]
+
+plot(test$toy[-c(1,2,3)][1:200], test_3step[['pred']][1:200], type = 'l', 
+     ylim = c(-2, 15), ylab = 'Wind power', xlab = 'Day of 2003')
+lines(test$toy[-c(1,2,3)][1:200], test_3step[['upper']][1:200], lty = 2, col = 'blue')
+lines(test$toy[-c(1,2,3)][1:200], test_3step[['lower']][1:200], lty = 2, col = 'blue')
+lines(test$toy[-c(1,2,3)][1:200], ytest[1:200], col = 'red')
+legend('topright', 
+       legend= c('Predicted value', '95% confidence intervals', 'True value'),
+       lty = c(1,2,1), col = c('black', 'blue', 'red'))
+
